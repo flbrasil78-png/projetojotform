@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JotForm + ChatGPT - Assistente de Escrita</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5; color: #333; line-height: 1.6;
+      display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 40px 20px;
+    }
+    .container { max-width: 600px; width: 100%; }
+    h1 { font-size: 1.5rem; margin-bottom: 8px; color: #10a37f; }
+    p { color: #666; margin-bottom: 24px; }
+    .card {
+      background: #fff; border-radius: 12px; padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 16px;
+    }
+    .card h2 { font-size: 1.1rem; margin-bottom: 12px; }
+    label { display: block; font-size: .9rem; font-weight: 600; margin-bottom: 6px; color: #555; }
+    textarea, input[type="text"] {
+      width: 100%; padding: 10px 12px; border: 1px solid #ddd;
+      border-radius: 8px; font-size: .95rem; font-family: inherit;
+      resize: vertical; transition: border-color .2s;
+    }
+    textarea:focus, input:focus { outline: none; border-color: #10a37f; }
+    textarea { min-height: 120px; }
+    .status {
+      margin-top: 12px; padding: 10px 14px; border-radius: 8px;
+      font-size: .9rem; display: none;
+    }
+    .status--success { display: block; background: #e8f5e9; color: #2e7d32; }
+    .status--error { display: block; background: #ffebee; color: #c62828; }
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: .75rem; font-weight: 600; margin-left: 8px;
+    }
+    .badge--ok { background: #e8f5e9; color: #2e7d32; }
+    .badge--err { background: #ffebee; color: #c62828; }
+    hr { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+    code {
+      background: #f0f0f0; padding: 2px 6px; border-radius: 4px;
+      font-size: .85rem; word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Assistente de Escrita ChatGPT + JotForm</h1>
+    <p>Backend funcionando. Use o formulário abaixo para testar ou siga as instruções para integrar no JotForm.</p>
+
+    <div class="card">
+      <h2>Testar API</h2>
+      <label for="test-text">Digite um texto para revisar:</label>
+      <textarea id="test-text" placeholder="Digite algo com erros gramaticais..."></textarea>
+      <div id="test-status" class="status"></div>
+      <button id="test-btn" class="jf-chatgpt-btn" style="margin-top: 12px;"
+        onclick="testAPI()">Melhorar texto</button>
+    </div>
+
+    <div class="card">
+      <h2>Status do Servidor</h2>
+      <p id="health-status">Verificando... <span class="badge badge--err">OFF</span></p>
+    </div>
+
+    <div class="card">
+      <h2>Como integrar no JotForm</h2>
+      <ol style="padding-left: 20px; font-size: .9rem;">
+        <li>No JotForm, vá em <strong>Settings &gt; Form Settings &gt; Advanced &gt; Customize Form Layout</strong></li>
+        <li>Em <strong>Custom Footer</strong>, cole o código HTML abaixo</li>
+        <li>Substitua <code>https://SEU-SERVIDOR.com</code> pela URL deste servidor</li>
+        <li>Salve e publique o formulário</li>
+      </ol>
+      <hr>
+      <h3>Código para colar no Footer:</h3>
+      <pre style="background:#f0f0f0;padding:12px;border-radius:8px;font-size:.8rem;overflow-x:auto;white-space:pre-wrap;word-break:break-all;" id="snippet-code"></pre>
+      <button style="margin-top:8px;padding:6px 12px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:.85rem;" onclick="copySnippet()">Copiar código</button>
+    </div>
+  </div>
+
+  <script>
+    async function testAPI() {
+      var text = document.getElementById("test-text").value
+      var status = document.getElementById("test-status")
+      var btn = document.getElementById("test-btn")
+
+      if (!text.trim()) {
+        status.className = "status status--error"
+        status.textContent = "Digite um texto primeiro."
+        return
+      }
+
+      btn.disabled = true; btn.textContent = "Revisando..."
+      status.className = "status"
+
+      try {
+        var res = await fetch("/api/polish", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: text, tone: "professional", context: "Teste" }),
+        })
+        var data = await res.json()
+        if (!res.ok) throw new Error(data.error)
+        document.getElementById("test-text").value = data.polished
+        status.className = "status status--success"
+        status.textContent = "Texto revisado com sucesso!"
+      } catch (err) {
+        status.className = "status status--error"
+        status.textContent = "Erro: " + err.message
+      } finally {
+        btn.disabled = false; btn.textContent = "Melhorar texto"
+      }
+    }
+
+    fetch("/api/health").then(function (r) { return r.json() }).then(function (d) {
+      var el = document.getElementById("health-status")
+      if (d.apiKey) {
+        el.innerHTML = 'Online &check; <span class="badge badge--ok">OK</span>'
+      } else {
+        el.innerHTML = 'Online &check; <span class="badge badge--err">Sem API Key</span>'
+      }
+    }).catch(function () {
+      document.getElementById("health-status").innerHTML =
+        'Offline <span class="badge badge--err">OFF</span>'
+    })
+
+    var origin = window.location.origin
+    document.getElementById("snippet-code").textContent = [
+      '<script>',
+      '  window.JF_ChatGPT_Config = {',
+      '    apiUrl: "' + origin + '/api/polish",',
+      '    tone: "professional"',
+      '  }',
+      '<\/script>',
+      '<script src="' + origin + '/jotform-assistant.js"><\/script>',
+    ].join("\n")
+
+    function copySnippet() {
+      var code = document.getElementById("snippet-code")
+      navigator.clipboard.writeText(code.textContent).then(function () {
+        alert("Código copiado!")
+      })
+    }
+  </script>
+</body>
+</html>
