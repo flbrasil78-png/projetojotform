@@ -33,32 +33,31 @@ app.post("/api/polish", async (req, res) => {
 
     const toneInstruction = toneOptions[tone] || toneOptions.professional
 
-    const systemPrompt = `Você é um assistente de escrita especializado em revisar e melhorar textos em português brasileiro.
+    const prompt = `Você é um assistente de escrita especializado em revisar e melhorar textos em português brasileiro.
 
 ${toneInstruction}
 
-Regras:
-- Corrija erros gramaticais, ortográficos e de pontuação
-- Melhore a clareza e fluidez do texto
-- Preserve o significado original e as informações
-- NÃO adicione informações novas que não estavam no texto original
-- NÃO use linguagem rebuscada desnecessariamente
-- Retorno APENAS o texto revisado, sem explicações, comentários ou formatação extra
-- Mantenha parágrafos e estrutura original`
+Regras obrigatórias:
+- Corrija TODOS os erros gramaticais, ortográficos e de pontuação
+- NÃO remova NENHUMA palavra ou informação do texto original
+- NÃO resuma, NÃO encurte, NÃO omita nada
+- Preserve 100% do conteúdo original, apenas corrigindo e formalizando
+- Mantenha parágrafos e estrutura original
+- Retorne APENAS o texto revisado, sem explicações
+
+${context ? `Contexto: ${context}` : ""}
+
+Texto para revisar:
+${text}`
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      systemInstruction: systemPrompt,
+      model: "gemini-3.5-flash",
     })
 
-    const userContent = context
-      ? `Contexto do formulário: ${context}\n\nTexto para revisar:\n${text}`
-      : `Texto para revisar:\n${text}`
-
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: userContent }] }],
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
-        maxOutputTokens: Math.min(text.length * 2, 16000),
+        maxOutputTokens: Math.max(text.length * 4, 2048),
         temperature: 0.3,
       },
     })
@@ -68,7 +67,7 @@ Regras:
     res.json({
       original: text,
       polished,
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       usage: null,
     })
   } catch (err) {
@@ -97,13 +96,16 @@ app.listen(port, () => {
 })
 
 const toneOptions = {
-  professional: `- Mantenha um tom profissional e formal
-- Prefira linguagem clara e objetiva`,
-  friendly: `- Mantenha um tom amigável e acessível
-- Use linguagem natural e acolhedora`,
+  professional: `- Use tom profissional e formal
+- Substitua girias e expressoes informais por termos adequados
+- Escreva de forma clara, objetiva e respeitosa`,
+  friendly: `- Use tom amigavel e acessivel
+- Mantenha uma linguagem natural e acolhedora
+- Corrija erros sem perder a cordialidade`,
   formal: `- Use linguagem formal e respeitosa
-- Evite contrações e gírias`,
+- Evite contracoes e girias
+- Prefira vocabulario mais elaborado`,
   concise: `- Seja conciso e direto
-- Elimine redundâncias e palavras desnecessárias
-- Mantenha apenas a informação essencial`,
+- Elimine redundancias e palavras desnecessarias
+- Mantenha apenas a informacao essencial`,
 }
