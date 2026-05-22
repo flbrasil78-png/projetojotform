@@ -2,6 +2,7 @@
   var config = window.JF_Gemini_Config || window.JF_ChatGPT_Config || {}
   var API_URL = config.apiUrl || "https://SEU-SERVIDOR.com/api/polish"
   var TONE = config.tone || "professional"
+  var FIELD_ID = config.fieldId || null
 
   var style = document.createElement("style")
   style.textContent = [
@@ -91,7 +92,9 @@
   }
 
   function injectFields() {
-    var selectors = "textarea, input[type='text'], input[type='email'], input:not([type])"
+    var selectors = FIELD_ID
+      ? "#" + FIELD_ID
+      : "textarea, input[type='text'], input[type='email'], input:not([type])"
     var fields = document.querySelectorAll(selectors)
 
     fields.forEach(function (field) {
