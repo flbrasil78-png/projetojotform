@@ -92,10 +92,16 @@
   }
 
   function injectFields() {
-    var selectors = FIELD_ID
-      ? "#" + FIELD_ID
-      : "textarea, input[type='text'], input[type='email'], input:not([type])"
-    var fields = document.querySelectorAll(selectors)
+    var fields
+    if (FIELD_ID) {
+      var el = document.getElementById(FIELD_ID)
+      if (!el) return
+      fields = el.tagName === "TEXTAREA" || el.tagName === "INPUT"
+        ? [el]
+        : el.querySelectorAll("textarea, input:not([type='hidden']):not([type='submit']):not([type='button'])")
+    } else {
+      fields = document.querySelectorAll("textarea, input[type='text'], input[type='email'], input:not([type])")
+    }
 
     fields.forEach(function (field) {
       if (field.closest(".jf-chatgpt-wrapper")) return
