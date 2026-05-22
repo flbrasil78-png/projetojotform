@@ -1,5 +1,7 @@
 (function () {
+  console.log("[JF-Assistant] Script carregado")
   var config = window.JF_Gemini_Config || window.JF_ChatGPT_Config || {}
+  console.log("[JF-Assistant] Config:", JSON.stringify(config))
   var API_URL = config.apiUrl || "https://SEU-SERVIDOR.com/api/polish"
   var TONE = config.tone || "professional"
   var FIELD_ID = config.fieldId || null
@@ -95,11 +97,13 @@
   function findField() {
     if (!FIELD_ID) return null
     var el = document.getElementById(FIELD_ID)
-    if (el) return el
+    if (el) { console.log("[JF-Assistant] Achou por ID:", FIELD_ID); return el }
     el = document.querySelector("[id*='" + FIELD_ID + "']")
-    if (el) return el
+    if (el) { console.log("[JF-Assistant] Achou por partial ID:", el.id); return el }
     el = document.querySelector("textarea[id*='" + FIELD_ID + "'], input[id*='" + FIELD_ID + "']")
-    return el || null
+    if (el) { console.log("[JF-Assistant] Achou input por partial ID:", el.id); return el }
+    console.log("[JF-Assistant] Nao achou campo com ID:", FIELD_ID)
+    return null
   }
 
   function injectFields() {
@@ -108,20 +112,26 @@
       var el = findField()
       if (!el) {
         RETRIES++
-        if (RETRIES < 20) setTimeout(injectFields, 500)
+        if (RETRIES < 20) { setTimeout(injectFields, 500); return }
+        console.log("[JF-Assistant] Desistiu apos " + RETRIES + " tentativas")
         return
       }
       fields = el.tagName === "TEXTAREA" || el.tagName === "INPUT"
         ? [el]
         : el.querySelectorAll("textarea, input:not([type='hidden']):not([type='submit']):not([type='button'])")
       if (!fields.length) {
+        console.log("[JF-Assistant] Nenhum input dentro do container, tentando selector alternativo")
         fields = el.querySelectorAll("[class*='input'] textarea, [class*='input'] input:not([type='hidden']):not([type='submit']):not([type='button'])")
       }
+      console.log("[JF-Assistant] Campos encontrados:", fields.length)
     } else {
       fields = document.querySelectorAll("textarea, input[type='text'], input[type='email'], input:not([type])")
     }
 
-    if (!fields || !fields.length) return
+    if (!fields || !fields.length) {
+      console.log("[JF-Assistant] Nenhum campo viavel")
+      return
+    }
 
     fields.forEach(function (field) {
       if (field.closest(".jf-chatgpt-wrapper")) return
