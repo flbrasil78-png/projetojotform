@@ -3,6 +3,7 @@
   var API_URL = config.apiUrl || "https://SEU-SERVIDOR.com/api/polish"
   var TONE = config.tone || "professional"
   var FIELD_ID = config.fieldId || null
+  var RETRIES = 0
 
   var style = document.createElement("style")
   style.textContent = [
@@ -91,17 +92,36 @@
     return data.polished
   }
 
+  function findField() {
+    if (!FIELD_ID) return null
+    var el = document.getElementById(FIELD_ID)
+    if (el) return el
+    el = document.querySelector("[id*='" + FIELD_ID + "']")
+    if (el) return el
+    el = document.querySelector("textarea[id*='" + FIELD_ID + "'], input[id*='" + FIELD_ID + "']")
+    return el || null
+  }
+
   function injectFields() {
     var fields
     if (FIELD_ID) {
-      var el = document.getElementById(FIELD_ID)
-      if (!el) return
+      var el = findField()
+      if (!el) {
+        RETRIES++
+        if (RETRIES < 20) setTimeout(injectFields, 500)
+        return
+      }
       fields = el.tagName === "TEXTAREA" || el.tagName === "INPUT"
         ? [el]
         : el.querySelectorAll("textarea, input:not([type='hidden']):not([type='submit']):not([type='button'])")
+      if (!fields.length) {
+        fields = el.querySelectorAll("[class*='input'] textarea, [class*='input'] input:not([type='hidden']):not([type='submit']):not([type='button'])")
+      }
     } else {
       fields = document.querySelectorAll("textarea, input[type='text'], input[type='email'], input:not([type])")
     }
+
+    if (!fields || !fields.length) return
 
     fields.forEach(function (field) {
       if (field.closest(".jf-chatgpt-wrapper")) return
@@ -143,7 +163,10 @@
 
   function start() {
     injectFields()
-    var observer = new MutationObserver(injectFields)
+    var observer = new MutationObserver(function () {
+      RETRIES = 0
+      injectFields()
+    })
     observer.observe(document.body, { childList: true, subtree: true })
   }
 
