@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JotForm + ChatGPT - Assistente de Escrita</title>
+  <title>JotForm + Gemini - Assistente de Escrita</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -12,7 +12,7 @@
       display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 40px 20px;
     }
     .container { max-width: 600px; width: 100%; }
-    h1 { font-size: 1.5rem; margin-bottom: 8px; color: #10a37f; }
+    h1 { font-size: 1.5rem; margin-bottom: 8px; color: #4285f4; }
     p { color: #666; margin-bottom: 24px; }
     .card {
       background: #fff; border-radius: 12px; padding: 24px;
@@ -25,7 +25,7 @@
       border-radius: 8px; font-size: .95rem; font-family: inherit;
       resize: vertical; transition: border-color .2s;
     }
-    textarea:focus, input:focus { outline: none; border-color: #10a37f; }
+    textarea:focus, input:focus { outline: none; border-color: #4285f4; }
     textarea { min-height: 120px; }
     .status {
       margin-top: 12px; padding: 10px 14px; border-radius: 8px;
@@ -48,8 +48,8 @@
 </head>
 <body>
   <div class="container">
-    <h1>Assistente de Escrita ChatGPT + JotForm</h1>
-    <p>Backend funcionando. Use o formulário abaixo para testar ou siga as instruções para integrar no JotForm.</p>
+    <h1>Assistente de Escrita Gemini + JotForm</h1>
+    <p>Backend funcionando (Google Gemini). Use o formulário abaixo para testar ou siga as instruções para integrar no JotForm.</p>
 
     <div class="card">
       <h2>Testar API</h2>
@@ -75,6 +75,7 @@
       </ol>
       <hr>
       <h3>Código para colar no Footer:</h3>
+      <p style="font-size:.85rem;color:#666;margin-bottom:8px;">Troque <code>JF_ChatGPT_Config</code> por <code>JF_Gemini_Config</code> se preferir, mas o nome antigo também funciona.</p>
       <pre style="background:#f0f0f0;padding:12px;border-radius:8px;font-size:.8rem;overflow-x:auto;white-space:pre-wrap;word-break:break-all;" id="snippet-code"></pre>
       <button style="margin-top:8px;padding:6px 12px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:.85rem;" onclick="copySnippet()">Copiar código</button>
     </div>
@@ -117,9 +118,9 @@
     fetch("/api/health").then(function (r) { return r.json() }).then(function (d) {
       var el = document.getElementById("health-status")
       if (d.apiKey) {
-        el.innerHTML = 'Online &check; <span class="badge badge--ok">OK</span>'
+        el.innerHTML = 'Online &check; <span class="badge badge--ok">Gemini OK</span>'
       } else {
-        el.innerHTML = 'Online &check; <span class="badge badge--err">Sem API Key</span>'
+        el.innerHTML = 'Online &check; <span class="badge badge--err">Sem API Key Gemini</span>'
       }
     }).catch(function () {
       document.getElementById("health-status").innerHTML =
@@ -129,7 +130,7 @@
     var origin = window.location.origin
     document.getElementById("snippet-code").textContent = [
       '<script>',
-      '  window.JF_ChatGPT_Config = {',
+      '  window.JF_Gemini_Config = {',
       '    apiUrl: "' + origin + '/api/polish",',
       '    tone: "professional"',
       '  }',

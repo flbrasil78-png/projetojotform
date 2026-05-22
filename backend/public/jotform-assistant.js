@@ -1,5 +1,5 @@
 (function () {
-  var config = window.JF_ChatGPT_Config || {}
+  var config = window.JF_Gemini_Config || window.JF_ChatGPT_Config || {}
   var API_URL = config.apiUrl || "https://SEU-SERVIDOR.com/api/polish"
   var TONE = config.tone || "professional"
 

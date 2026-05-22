@@ -1,13 +1,13 @@
-# Assistente de Escrita ChatGPT + JotForm
+# Assistente de Escrita Gemini + JotForm
 
-Backend proxy + script de injeção para adicionar um assistente de escrita com IA dentro de formulários JotForm.
+Backend proxy + script de injeção para adicionar um assistente de escrita com IA (Google Gemini) dentro de formulários JotForm.
 
 ## Estrutura
 
 ```
 projeto/
 ├── backend/
-│   ├── server.js        Servidor Express (proxy OpenAI)
+│   ├── server.js        Servidor Express (proxy Gemini)
 │   ├── .env.example     Template de configuração
 │   └── package.json
 └── public/
@@ -24,9 +24,9 @@ cd backend
 cp .env.example .env
 ```
 
-Edite `.env` e coloque sua chave da OpenAI:
+Edite `.env` e coloque sua chave da Gemini:
 ```
-OPENAI_API_KEY=sk-sua-chave-aqui
+GEMINI_API_KEY=sua-chave-aqui
 PORT=3000
 ALLOWED_ORIGINS=*
 ```
@@ -55,11 +55,11 @@ Acesse http://localhost:3000 para testar.
    | Plan | **Free** |
 
 5. Em **Environment Variables**, adicione:
-   - `OPENAI_API_KEY` = sua chave da OpenAI
+   - `GEMINI_API_KEY` = sua chave da Gemini (gratuita em [aistudio.google.com](https://aistudio.google.com/apikey))
 
 6. Clique em **Deploy**
 
-Pronto! O Render gera uma URL tipo `https://jotform-chatgpt-assistant.onrender.com`
+Pronto! O Render gera uma URL tipo `https://jotform-gemini-assistant.onrender.com`
 
 > **Dica:** No free tier o servidor "dorme" após 15 min sem uso. A primeira requisição após um período ocioso pode levar alguns segundos.
 
@@ -72,7 +72,7 @@ Pronto! O Render gera uma URL tipo `https://jotform-chatgpt-assistant.onrender.c
 
 ```html
 <script>
-  window.JF_ChatGPT_Config = {
+  window.JF_Gemini_Config = {
     apiUrl: "https://SEU-SERVIDOR.onrender.com/api/polish",
     tone: "professional"
   }
@@ -101,15 +101,16 @@ No `window.JF_ChatGPT_Config`, altere `tone` para:
 | `formal` | Linguagem formal e respeitosa |
 | `concise` | Versão concisa e direta |
 
-### Modelo OpenAI
+### Modelo Gemini
 
-Em `backend/server.js`, altere `model` na linha do `openai.chat.completions.create`:
-- `gpt-4o-mini` (padrão, mais rápido e barato)
-- `gpt-4o` (mais capaz, um pouco mais caro)
+Em `backend/server.js`, altere `model` em `genAI.getGenerativeModel`:
+- `gemini-2.0-flash` (padrão, rápido e gratuito)
+- `gemini-1.5-flash` (alternativa gratuita)
+- `gemini-2.5-flash` (mais recente, gratuito)
 
 ## Segurança
 
-- A chave da OpenAI fica apenas no servidor
+- A chave da Gemini fica apenas no servidor
 - O script frontend NÃO expõe a chave
 - Limite de texto: 10.000 caracteres
 - Validação de entrada no servidor
